@@ -1,0 +1,71 @@
+node('liquibase') {
+    
+    
+    def secrets = [
+        [path: 'mis/demodb', 
+            secretValues:[
+                [envVar: 'PASSWORD', vaultKey: USERNAME],
+                [envVar: 'PASSPROD', vaultKey: USERPROD]
+            ]
+        ]
+    ]
+
+	stage('checkout') {
+		checkout([$class: 'GitSCM',
+				  branches: [[name: "${BRANCH}"]],
+				  doGenerateSubmoduleConfigurations: false,
+				  extensions: [],
+				  gitTool: 'Default',
+				  submoduleCfg: [],
+				  userRemoteConfigs: [[credentialsId: 'github',url: 'https://github.com/mpicozzi/demomis.git']]
+				])
+	}
+
+	stage("debug") {
+		echo "BRANCH: ${BRANCH} " 
+		echo "AZIONE: ${AZIONE}" 
+		echo "USERNAME: ${USERNAME}"
+		echo "USERPROD: ${USERPROD}"
+	}
+
+
+
+	stage('liquibase') {
+		try {
+            withVault([vaultSecrets: secrets]) {
+				sh 'echo "PASSWORD: ${PASSWORD}" | tee pippo.txt'
+				sh 'echo "PASSPROD: ${PASSPROD}" | tee -a pippo.txt'
+    			switch("${AZIONE}") { 
+    				case "rollback": 
+    					sh 'liquibase --username=$USERNAME --password=$PASSWORD rollbackCount 1';
+    					break;
+    				case "update": 
+    					sh 'liquibase --username=$USERNAME --password=$PASSWORD update'
+    					sh 'liquibase --username=$USERNAME --password=$PASSWORD tag %BRANCH%';
+    					break;
+    				case "status": 
+    					sh 'liquibase --username=$USERNAME --password=$PASSWORD status --verbose';
+    					break;
+    				case "sync":
+    					sh 'liquibase --username=$USERNAME --password=$PASSWORD changelogSync';
+    					break;
+    				case "clearCheckSums":
+    					sh 'liquibase --username=$USERNAME --password=$PASSWORD clearCheckSums';
+    					break;
+    				case "diffChangeLog":
+    					sh 'liquibase --changeLogFile=src/delta.xml --username=$USERNAME --password=$PASSWORD diffChangeLog --referenceUsername=$USERPROD --referencePassword $PASSPROD'
+    			}	
+				
+				//echo "Query database changelog...."
+				//sh 'oracle/query-changelog.cmd'
+
+			}
+
+		} catch (err) {
+			echo "Errore in fase di esecuzione liquibase"
+			throw err
+		}
+			
+	}
+	
+}

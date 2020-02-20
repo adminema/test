@@ -1,0 +1,68 @@
+node('liquibase') {
+
+    def secrets = [
+        [path: 'mis/demodb', 
+            secretValues:[
+                [envVar: 'PASSWORD', vaultKey: USERNAME],
+                [envVar: 'PASSSVIL', vaultKey: USERSVIL]
+            ]
+        ]
+    ]
+
+	stage('debug') {
+		echo "TAG: ${TAG} " 
+		echo "AZIONE: ${AZIONE}" 
+		echo "USERNAME: ${USERNAME}"
+		echo "USERSVIL: ${USERSVIL}"		
+		
+	}
+	stage('checkout') {
+		checkout([$class: 'GitSCM',
+				  branches: [[name: "${TAG}"]],
+				  doGenerateSubmoduleConfigurations: false,
+				  extensions: [],
+				  gitTool: 'Default',
+				  submoduleCfg: [],
+				  userRemoteConfigs: [[credentialsId: 'github',url: 'https://github.com/mpicozzi/demomis.git']]
+				])
+	}
+	
+	stage('liquibase') {
+		try {
+            withVault([vaultSecrets: secrets]) {
+				
+				switch("${AZIONE}") { 
+					case "rollbackSQL": 
+						sh 'liquibase --username=$USERNAME --password=$PASSWORD rollbackCountSQL 1';
+						break;
+					case "rollback": 
+						sh 'liquibase --username=$USERNAME --password=$PASSWORD rollbackCount 1';
+						break;
+					case "updateSQL": 
+						sh 'liquibase --username=$USERNAME --password=$PASSWORD updateSQL'
+						break;
+					case "update": 
+						sh 'liquibase --username=$USERNAME --password=$PASSWORD update'
+						sh 'liquibase --username=$USERNAME --password=$PASSWORD tag $TAG';
+						break;
+					case "status": 
+						sh 'liquibase --username=$USERNAME --password=$PASSWORD status --verbose';
+						break;
+    				case "diffChangeLog":
+    					sh 'liquibase --changeLogFile=src/delta.xml --username=$USERNAME --password=$PASSWORD diffChangeLog --referenceUsername=$USERSVIL --referencePassword $PASSSVIL'
+						
+				}
+
+				//echo "Query database changelog...."
+				//sh 'C:/mis/demomis/oracle/query-changelog.cmd'
+			}
+		} catch (err) {
+			echo "Errore in fase di esecuzione liquibase"
+			throw err
+		}
+			
+	}
+	
+
+	
+}
