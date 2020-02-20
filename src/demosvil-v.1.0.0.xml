@@ -17,4 +17,5 @@
         </createTable>
     </changeSet>
 	<include file="src/CHG-001-20200220.sql"/>
+	<include file="src/CHG-002-20200220.sql"/>
 </databaseChangeLog>
