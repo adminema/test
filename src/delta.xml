@@ -1,20 +1,29 @@
 <?xml version="1.1" encoding="UTF-8" standalone="no"?>
 <databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:pro="http://www.liquibase.org/xml/ns/pro" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-3.8.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
-    <changeSet author="liquibase" id="1582218505803-1">
-        <createTable tableName="ANAGRAFICHE">
-            <column name="NOME" type="VARCHAR2(60 BYTE)">
+    <changeSet author="malfanti (generated)" id="1582272694152-1">
+        <createTable tableName="CATALOGOLIBRI">
+            <column name="TITOLO" type="VARCHAR2(256 BYTE)">
                 <constraints nullable="false"/>
             </column>
-            <column name="COGNOME" type="VARCHAR2(60 BYTE)">
+            <column name="AUTORE" type="VARCHAR2(256 BYTE)">
                 <constraints nullable="false"/>
             </column>
-            <column name="DATADINASCITA" type="date">
+            <column name="CASA_EDITRICE" type="VARCHAR2(256 BYTE)">
                 <constraints nullable="false"/>
             </column>
-            <column name="SESSO" type="VARCHAR2(20 BYTE)">
-                <constraints nullable="false"/>
-            </column>
+            <column name="ISBN" type="VARCHAR2(512 BYTE)"/>
+            <column name="ALTRO_CODICE" type="VARCHAR2(20 BYTE)"/>
+            <column name="ANNO_PUBBLICAZIONE" type="date"/>
+            <column name="NUMERO_PEZZI" type="NUMBER"/>
+            <column name="ANNO_ULTIMA_RISTAMPA" type="date"/>
         </createTable>
     </changeSet>
-	<include file="src/delta.xml"/>
+    <changeSet author="malfanti (generated)" id="1582272694152-2">
+        <createTable tableName="PROVA">
+            <column name="COLUMN1" type="VARCHAR2(255 BYTE)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="COLUMN2" type="VARCHAR2(20 BYTE)"/>
+        </createTable>
+    </changeSet>
 </databaseChangeLog>
